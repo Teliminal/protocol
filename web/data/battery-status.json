@@ -1,0 +1,54 @@
+{
+  "updated_at": "2026-03-11T00:00:00Z",
+  "phases": [
+    {
+      "id": 1,
+      "model": "Perplexity Sonar",
+      "tracks_total": 3,
+      "tracks_complete": 3,
+      "rounds_total": 300,
+      "rounds_complete": 300,
+      "status": "complete",
+      "tracks": [
+        { "id": "A-U-SN-SN-S", "condition": "Known Cap",    "status": "complete", "rounds": 100 },
+        { "id": "B-U-SN-SN-S", "condition": "Unknown Cap",  "status": "complete", "rounds": 100 },
+        { "id": "C-U-SN-SN-S", "condition": "No Cap",       "status": "complete", "rounds": 100 }
+      ]
+    },
+    {
+      "id": 2,
+      "model": "Gemini 3.1 Pro Preview",
+      "tracks_total": 8,
+      "tracks_complete": 0,
+      "rounds_total": 800,
+      "rounds_complete": 0,
+      "status": "active",
+      "tracks": [
+        { "id": "A-U-GM-GM-S",  "condition": "Known Cap",      "status": "active",  "rounds": 0 },
+        { "id": "B-U-GM-GM-S",  "condition": "Unknown Cap",    "status": "active",  "rounds": 0 },
+        { "id": "C-U-GM-GM-S",  "condition": "No Cap",         "status": "active",  "rounds": 0 },
+        { "id": "A-G-GM-GM-S",  "condition": "Known Cap (G)",  "status": "active",  "rounds": 0 },
+        { "id": "B-G-GM-GM-S",  "condition": "Unknown Cap (G)","status": "active",  "rounds": 0 },
+        { "id": "D-U-GM-GM-S",  "condition": "Hard Mortality", "status": "active",  "rounds": 0 },
+        { "id": "DC-U-GM-GM-S", "condition": "D-Control",      "status": "active",  "rounds": 0 },
+        { "id": "B-U-GM-AN-A",  "condition": "Unknown Cap ×",  "status": "active",  "rounds": 0 }
+      ]
+    },
+    {
+      "id": 3,
+      "model": "Cross-model + Isolation",
+      "tracks_total": 11,
+      "tracks_complete": 0,
+      "rounds_total": 1100,
+      "rounds_complete": 0,
+      "status": "planned",
+      "tracks": []
+    }
+  ],
+  "totals": {
+    "tracks": 22,
+    "rounds": 2200,
+    "tracks_complete": 3,
+    "rounds_complete": 300
+  }
+}

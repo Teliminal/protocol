@@ -1,0 +1,67 @@
+# Nginx configuration for teliminal.com
+# Drop this in /etc/nginx/sites-available/teliminal
+# Then: ln -s /etc/nginx/sites-available/teliminal /etc/nginx/sites-enabled/
+# nginx -t && systemctl reload nginx
+
+server {
+    listen 80;
+    server_name teliminal.com www.teliminal.com;
+    return 301 https://teliminal.com$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name www.teliminal.com;
+    return 301 https://teliminal.com$request_uri;
+
+    ssl_certificate     /etc/letsencrypt/live/teliminal.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/teliminal.com/privkey.pem;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name teliminal.com;
+
+    ssl_certificate     /etc/letsencrypt/live/teliminal.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/teliminal.com/privkey.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+
+    # Security headers
+    add_header X-Frame-Options SAMEORIGIN;
+    add_header X-Content-Type-Options nosniff;
+    add_header X-XSS-Protection "1; mode=block";
+    add_header Referrer-Policy strict-origin-when-cross-origin;
+
+    # Proxy to Next.js (PM2 running on port 3010)
+    location / {
+        proxy_pass http://127.0.0.1:3010;
+        proxy_http_version 1.1;
+
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_cache_bypass $http_upgrade;
+        proxy_read_timeout 60s;
+    }
+
+    # Static assets — long cache
+    location /_next/static/ {
+        proxy_pass http://127.0.0.1:3010;
+        proxy_set_header Host $host;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+
+    # Gzip
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml;
+    gzip_proxied any;
+    gzip_comp_level 6;
+}

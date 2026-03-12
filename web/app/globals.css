@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg:        #0a0a0b;
+  --bg-card:   #0f0f11;
+  --border:    #1e1e24;
+  --border-hi: #2e2e38;
+  --muted:     #4a4a5a;
+  --dim:       #7a7a90;
+  --text:      #c8c8d8;
+  --bright:    #e8e8f0;
+  --white:     #f4f4f8;
+  --accent:    #8b5cf6;
+  --success:   #22c55e;
+  --warning:   #f59e0b;
+  --danger:    #ef4444;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+
+/* Selection */
+::selection { background: rgba(139, 92, 246, 0.25); color: var(--white); }
+
+@layer components {
+  .doc-tag {
+    @apply font-mono text-[0.65rem] text-muted tracking-[0.14em] uppercase;
+  }
+
+  .section-heading {
+    @apply font-serif text-3xl font-bold text-bright leading-tight;
+  }
+
+  .prose-body {
+    @apply text-[0.975rem] text-text leading-[1.8];
+  }
+
+  .card {
+    @apply border border-border bg-bg-card;
+  }
+
+  .badge {
+    @apply inline-block font-mono text-[0.6rem] tracking-[0.08em] uppercase px-[0.4rem] py-[0.15rem] rounded-sm;
+  }
+
+  .badge-complete { @apply bg-success/10 text-success; }
+  .badge-active   { @apply bg-accent/10 text-accent; }
+  .badge-planned  { @apply bg-muted/10 text-muted; }
+
+  .input-field {
+    @apply w-full bg-bg-card border border-border font-mono text-[0.85rem] text-bright
+           px-3 py-2.5 focus:outline-none focus:border-accent
+           placeholder:text-muted transition-colors;
+  }
+
+  .btn-primary {
+    @apply bg-accent hover:bg-accent/90 text-white font-mono text-[0.75rem]
+           tracking-[0.08em] uppercase px-6 py-3 transition-colors
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .btn-ghost {
+    @apply border border-border hover:border-border-hi text-dim hover:text-text
+           font-mono text-[0.75rem] tracking-[0.08em] uppercase px-6 py-3 transition-colors;
+  }
+}
