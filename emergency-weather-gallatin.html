@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EMERGENCY WEATHER - Gallatin TN</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#0a0a0f;--surface:#12131a;--card:#1a1b25;--border:#2a2b3a;
+--red:#ef4444;--red-dark:#991b1b;--orange:#f97316;--yellow:#eab308;
+--green:#22c55e;--blue:#3b82f6;--purple:#a855f7;--cyan:#06b6d4;
+--text:#f1f5f9;--text-dim:#94a3b8;--text-muted:#64748b;
+--gradient-danger:linear-gradient(135deg,#991b1b,#7f1d1d);
+--gradient-warn:linear-gradient(135deg,#92400e,#78350f);
+--gradient-safe:linear-gradient(135deg,#14532d,#064e3b);
+}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;line-height:1.5}
+#root{min-height:100vh;display:flex;flex-direction:column}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* Alert Banner Animation */
+@keyframes alertPulse{0%,100%{opacity:1}50%{opacity:.7}}
+@keyframes slideIn{from{transform:translateY(-10px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes radarSweep{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+.alert-banner{
+background:var(--gradient-danger);padding:10px 16px;text-align:center;
+font-weight:700;font-size:.95rem;animation:alertPulse 2s ease-in-out infinite;
+border-bottom:2px solid var(--red);position:sticky;top:0;z-index:100;
+}
+.alert-banner.warning{background:var(--gradient-warn);border-color:var(--orange)}
+.alert-banner.safe{background:var(--gradient-safe);border-color:var(--green);animation:none}
+
+/* Header */
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.header h1{font-size:1.1rem;font-weight:800;letter-spacing:-.02em}
+.header .location{font-size:.8rem;color:var(--text-dim)}
+.header .live-dot{width:8px;height:8px;border-radius:50%;background:var(--red);animation:alertPulse 1.5s infinite;display:inline-block;margin-right:6px}
+.header .refresh-time{font-size:.7rem;color:var(--text-muted)}
+
+/* Nav Tabs */
+.nav{display:flex;overflow-x:auto;background:var(--surface);border-bottom:1px solid var(--border);padding:0 8px;gap:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav button{
+flex-shrink:0;padding:10px 14px;background:none;border:none;color:var(--text-muted);
+font-size:.8rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;
+transition:all .2s;white-space:nowrap;
+}
+.nav button.active{color:var(--text);border-bottom-color:var(--red)}
+.nav button:hover{color:var(--text-dim)}
+
+/* Content */
+.content{flex:1;padding:12px;max-width:800px;width:100%;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;animation:slideIn .3s ease}
+.card h2{font-size:1rem;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.card h3{font-size:.9rem;font-weight:600;margin:12px 0 6px;color:var(--text-dim)}
+.card p,.card li{font-size:.85rem;color:var(--text-dim);line-height:1.6}
+.card ul{padding-left:18px}
+.card ul li{margin-bottom:4px}
+
+/* Alert Cards */
+.alert-card{border-left:4px solid var(--red);background:linear-gradient(90deg,rgba(239,68,68,.08),transparent)}
+.alert-card.watch{border-left-color:var(--orange);background:linear-gradient(90deg,rgba(249,115,22,.08),transparent)}
+.alert-card.advisory{border-left-color:var(--yellow);background:linear-gradient(90deg,rgba(234,179,8,.08),transparent)}
+.alert-card .alert-type{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:3px 8px;border-radius:4px;display:inline-block;margin-bottom:8px}
+.alert-card .alert-type.warning-tag{background:rgba(239,68,68,.2);color:var(--red)}
+.alert-card .alert-type.watch-tag{background:rgba(249,115,22,.2);color:var(--orange)}
+.alert-card .alert-type.advisory-tag{background:rgba(234,179,8,.2);color:var(--yellow)}
+.alert-card .alert-time{font-size:.75rem;color:var(--text-muted);margin-top:6px}
+.alert-card .alert-headline{font-weight:700;color:var(--text);font-size:.9rem;margin-bottom:6px}
+.alert-card .alert-desc{font-size:.82rem;color:var(--text-dim);white-space:pre-wrap;max-height:200px;overflow-y:auto}
+.alert-card .expand-btn{background:none;border:none;color:var(--blue);font-size:.8rem;cursor:pointer;padding:4px 0;margin-top:4px}
+
+/* Radar */
+.radar-container{position:relative;width:100%;padding-top:75%;background:var(--surface);border-radius:8px;overflow:hidden}
+.radar-container iframe,.radar-container img{position:absolute;top:0;left:0;width:100%;height:100%;border:none}
+.radar-controls{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.radar-btn{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:.78rem;cursor:pointer;transition:all .2s}
+.radar-btn.active{background:var(--blue);border-color:var(--blue)}
+
+/* Forecast Grid */
+.forecast-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.forecast-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center}
+.forecast-item .day{font-weight:700;font-size:.82rem}
+.forecast-item .temp{font-size:1.4rem;font-weight:800;margin:4px 0}
+.forecast-item .temp-hi{color:var(--red)}
+.forecast-item .temp-lo{color:var(--blue)}
+.forecast-item .desc{font-size:.75rem;color:var(--text-dim);margin-top:4px}
+.forecast-item .icon{font-size:2rem;margin:4px 0}
+.forecast-item .precip{font-size:.72rem;color:var(--cyan);margin-top:2px}
+
+/* Hourly */
+.hourly-scroll{display:flex;overflow-x:auto;gap:8px;padding:4px 0;-webkit-overflow-scrolling:touch}
+.hourly-scroll::-webkit-scrollbar{height:4px}
+.hourly-item{flex-shrink:0;width:72px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px;text-align:center}
+.hourly-item .time{font-size:.7rem;font-weight:600;color:var(--text-dim)}
+.hourly-item .h-temp{font-size:1rem;font-weight:800;margin:4px 0}
+.hourly-item .h-icon{font-size:1.3rem}
+.hourly-item .h-wind{font-size:.65rem;color:var(--text-muted);margin-top:2px}
+.hourly-item .h-precip{font-size:.65rem;color:var(--cyan)}
+
+/* Details Grid */
+.details-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.detail-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px}
+.detail-item .label{font-size:.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;letter-spacing:.05em}
+.detail-item .value{font-size:1.2rem;font-weight:800;margin-top:4px}
+.detail-item .sub{font-size:.72rem;color:var(--text-dim);margin-top:2px}
+
+/* Safety */
+.safety-section{margin-bottom:16px}
+.safety-step{display:flex;gap:12px;align-items:flex-start;padding:10px;background:var(--surface);border-radius:8px;margin-bottom:6px;border:1px solid var(--border)}
+.safety-step .step-num{flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem}
+.safety-step .step-text{font-size:.85rem;line-height:1.5}
+.safety-step .step-text strong{color:var(--text)}
+
+/* Emergency Contacts */
+.contact-card{display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;transition:all .2s}
+.contact-card:active{transform:scale(.98)}
+.contact-card .contact-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.contact-card .contact-info{flex:1}
+.contact-card .contact-name{font-weight:700;font-size:.85rem}
+.contact-card .contact-num{font-size:.8rem;color:var(--cyan)}
+.contact-card .contact-desc{font-size:.72rem;color:var(--text-muted)}
+
+/* Checklist */
+.checklist-item{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid var(--border);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.checklist-item:last-child{border-bottom:none}
+.checklist-item input{width:20px;height:20px;accent-color:var(--green);flex-shrink:0}
+.checklist-item label{font-size:.85rem;cursor:pointer;flex:1}
+.checklist-item.checked label{text-decoration:line-through;color:var(--text-muted)}
+
+/* Status Indicator */
+.status-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;margin-bottom:12px;font-size:.8rem;font-weight:600}
+.status-bar.danger{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.status-bar.caution{background:rgba(249,115,22,.15);color:var(--orange);border:1px solid rgba(249,115,22,.3)}
+.status-bar.ok{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+
+/* Map */
+.map-container{position:relative;width:100%;padding-top:60%;background:var(--surface);border-radius:8px;overflow:hidden;margin-bottom:8px}
+.map-container iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none}
+
+/* Loading */
+.loading{text-align:center;padding:40px;color:var(--text-muted)}
+.loading .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--red);border-radius:50%;animation:radarSweep .8s linear infinite;margin:0 auto 12px}
+.error-msg{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:12px;color:var(--red);font-size:.85rem;margin-bottom:12px}
+
+/* Bottom Bar */
+.bottom-bar{background:var(--surface);border-top:1px solid var(--border);padding:8px 16px;text-align:center;font-size:.7rem;color:var(--text-muted)}
+.bottom-bar a{color:var(--cyan);text-decoration:none}
+
+/* Tornado-specific animation for warning state */
+.tornado-warning-active{border:2px solid var(--red);animation:blink 1s infinite}
+
+/* Responsive */
+@media(max-width:380px){
+  .nav button{padding:8px 10px;font-size:.75rem}
+  .details-grid{grid-template-columns:1fr}
+  .forecast-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef, useMemo } = React;
+
+// ============================================================
+// CONFIGURATION - Gallatin, TN / 1292 Wentworth Dr
+// ============================================================
+const CONFIG = {
+  lat: 36.3887,
+  lon: -86.4467,
+  city: 'Gallatin',
+  state: 'TN',
+  address: '1292 Wentworth Dr, Gallatin, TN',
+  county: 'Sumner',
+  nwsOffice: 'OHX', // Nashville NWS office
+  radarStation: 'KOHX', // Nashville radar
+  timezone: 'America/Chicago',
+  refreshInterval: 60000, // 1 minute
+  alertRefreshInterval: 30000, // 30 seconds for alerts
+};
+
+// ============================================================
+// WEATHER ICON MAPPING
+// ============================================================
+const getWeatherIcon = (forecast) => {
+  if (!forecast) return '🌡️';
+  const f = forecast.toLowerCase();
+  if (f.includes('tornado')) return '🌪️';
+  if (f.includes('hurricane') || f.includes('tropical')) return '🌀';
+  if (f.includes('thunder') || f.includes('tstm') || f.includes('t-storm')) return '⛈️';
+  if (f.includes('snow') || f.includes('blizzard')) return '🌨️';
+  if (f.includes('ice') || f.includes('sleet') || f.includes('freezing')) return '🧊';
+  if (f.includes('rain') || f.includes('shower') || f.includes('drizzle')) return '🌧️';
+  if (f.includes('fog')) return '🌫️';
+  if (f.includes('wind')) return '💨';
+  if (f.includes('cloud') || f.includes('overcast')) return '☁️';
+  if (f.includes('partly')) return '⛅';
+  if (f.includes('clear') || f.includes('sunny') || f.includes('fair')) return '☀️';
+  if (f.includes('hot')) return '🔥';
+  if (f.includes('haze')) return '🌫️';
+  return '🌡️';
+};
+
+// Severity ordering
+const SEVERITY_ORDER = { 'Extreme': 0, 'Severe': 1, 'Moderate': 2, 'Minor': 3, 'Unknown': 4 };
+const URGENCY_ORDER = { 'Immediate': 0, 'Expected': 1, 'Future': 2, 'Past': 3, 'Unknown': 4 };
+
+// ============================================================
+// CUSTOM HOOKS
+// ============================================================
+
+function useNWSAlerts() {
+  const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [lastFetched, setLastFetched] = useState(null);
+
+  const fetchAlerts = useCallback(async () => {
+    try {
+      // Fetch alerts for the specific point AND for the county zone
+      const [pointResp, zoneResp] = await Promise.all([
+        fetch(`https://api.weather.gov/alerts/active?point=${CONFIG.lat},${CONFIG.lon}`, {
+          headers: { 'User-Agent': 'EmergencyWeatherApp/1.0 (emergency-family-safety)', Accept: 'application/geo+json' }
+        }),
+        fetch(`https://api.weather.gov/alerts/active?area=TN`, {
+          headers: { 'User-Agent': 'EmergencyWeatherApp/1.0 (emergency-family-safety)', Accept: 'application/geo+json' }
+        })
+      ]);
+
+      const pointData = await pointResp.json();
+      const zoneData = await zoneResp.json();
+
+      // Combine and deduplicate alerts
+      const allAlerts = new Map();
+      const processFeatures = (features) => {
+        (features || []).forEach(f => {
+          const p = f.properties;
+          // Filter zone alerts to only those mentioning Sumner County or Gallatin
+          const desc = (p.description || '').toLowerCase();
+          const area = (p.areaDesc || '').toLowerCase();
+          const headline = (p.headline || '').toLowerCase();
+          const isRelevant = area.includes('sumner') || area.includes('gallatin') ||
+            desc.includes('sumner') || desc.includes('gallatin') ||
+            headline.includes('sumner') || headline.includes('gallatin');
+          if (isRelevant || f._fromPoint) {
+            allAlerts.set(p.id, p);
+          }
+        });
+      };
+
+      if (pointData.features) {
+        pointData.features.forEach(f => f._fromPoint = true);
+        processFeatures(pointData.features);
+      }
+      processFeatures(zoneData.features);
+
+      // Sort by severity then urgency
+      const sorted = Array.from(allAlerts.values()).sort((a, b) => {
+        const sevDiff = (SEVERITY_ORDER[a.severity] || 4) - (SEVERITY_ORDER[b.severity] || 4);
+        if (sevDiff !== 0) return sevDiff;
+        return (URGENCY_ORDER[a.urgency] || 4) - (URGENCY_ORDER[b.urgency] || 4);
+      });
+
+      setAlerts(sorted);
+      setLastFetched(new Date());
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch alerts: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAlerts();
+    const iv = setInterval(fetchAlerts, CONFIG.alertRefreshInterval);
+    return () => clearInterval(iv);
+  }, [fetchAlerts]);
+
+  return { alerts, loading, error, lastFetched, refetch: fetchAlerts };
+}
+
+function useNWSForecast() {
+  const [forecast, setForecast] = useState(null);
+  const [hourly, setHourly] = useState(null);
+  const [current, setCurrent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchForecast = useCallback(async () => {
+    try {
+      // Get grid point metadata first
+      const metaResp = await fetch(`https://api.weather.gov/points/${CONFIG.lat},${CONFIG.lon}`, {
+        headers: { 'User-Agent': 'EmergencyWeatherApp/1.0', Accept: 'application/geo+json' }
+      });
+      const meta = await metaResp.json();
+      const props = meta.properties;
+
+      // Fetch forecast, hourly, and observation stations in parallel
+      const [forecastResp, hourlyResp, stationsResp] = await Promise.all([
+        fetch(props.forecast, { headers: { 'User-Agent': 'EmergencyWeatherApp/1.0' } }),
+        fetch(props.forecastHourly, { headers: { 'User-Agent': 'EmergencyWeatherApp/1.0' } }),
+        fetch(props.observationStations, { headers: { 'User-Agent': 'EmergencyWeatherApp/1.0' } })
+      ]);
+
+      const forecastData = await forecastResp.json();
+      const hourlyData = await hourlyResp.json();
+      const stationsData = await stationsResp.json();
+
+      setForecast(forecastData.properties?.periods || []);
+      setHourly(hourlyData.properties?.periods || []);
+
+      // Get latest observation from nearest station
+      if (stationsData.features && stationsData.features.length > 0) {
+        const stationId = stationsData.features[0].properties.stationIdentifier;
+        const obsResp = await fetch(`https://api.weather.gov/stations/${stationId}/observations/latest`, {
+          headers: { 'User-Agent': 'EmergencyWeatherApp/1.0' }
+        });
+        const obsData = await obsResp.json();
+        setCurrent(obsData.properties);
+      }
+
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch forecast: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchForecast();
+    const iv = setInterval(fetchForecast, CONFIG.refreshInterval * 5);
+    return () => clearInterval(iv);
+  }, [fetchForecast]);
+
+  return { forecast, hourly, current, loading, error, refetch: fetchForecast };
+}
+
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
+const celsiusToF = (c) => c != null ? Math.round((c * 9/5) + 32) : null;
+const metersToMiles = (m) => m != null ? (m * 0.000621371).toFixed(1) : null;
+const kphToMph = (k) => k != null ? Math.round(k * 0.621371) : null;
+const paToInHg = (pa) => pa != null ? (pa * 0.00029530).toFixed(2) : null;
+
+const formatTime = (iso) => {
+  if (!iso) return '';
+  return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: CONFIG.timezone });
+};
+const formatDateTime = (iso) => {
+  if (!iso) return '';
+  return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: CONFIG.timezone });
+};
+const formatDay = (iso) => {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('en-US', { weekday: 'short', timeZone: CONFIG.timezone });
+};
+const timeAgo = (date) => {
+  if (!date) return '';
+  const s = Math.floor((new Date() - date) / 1000);
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.floor(s/60)}m ago`;
+  return `${Math.floor(s/3600)}h ago`;
+};
+
+// ============================================================
+// COMPONENTS
+// ============================================================
+
+function AlertBanner({ alerts }) {
+  const topAlert = alerts[0];
+  if (!topAlert) return <div className="alert-banner safe">✓ No active severe weather alerts for your area — Stay vigilant</div>;
+
+  const isTornado = topAlert.event?.toLowerCase().includes('tornado');
+  const isWarning = topAlert.severity === 'Extreme' || topAlert.severity === 'Severe';
+  const cls = isWarning ? '' : ' warning';
+
+  return (
+    <div className={`alert-banner${cls}`}>
+      {isTornado ? '🌪️ ' : '⚠️ '}
+      <strong>{topAlert.event}</strong> — {topAlert.headline || topAlert.description?.substring(0, 100)}
+    </div>
+  );
+}
+
+function Header({ lastFetched, alertCount }) {
+  return (
+    <div className="header">
+      <div>
+        <h1><span className="live-dot"></span>EMERGENCY WEATHER</h1>
+        <div className="location">📍 {CONFIG.address}</div>
+      </div>
+      <div style={{textAlign:'right'}}>
+        {alertCount > 0 && <div style={{background:'var(--red)',padding:'2px 8px',borderRadius:12,fontSize:'.72rem',fontWeight:700,marginBottom:4,display:'inline-block'}}>{alertCount} ACTIVE ALERT{alertCount>1?'S':''}</div>}
+        <div className="refresh-time">Updated: {lastFetched ? timeAgo(lastFetched) : '...'}</div>
+      </div>
+    </div>
+  );
+}
+
+function TabNav({ activeTab, setActiveTab, alertCount }) {
+  const tabs = [
+    { id: 'alerts', label: `🚨 Alerts${alertCount > 0 ? ` (${alertCount})` : ''}` },
+    { id: 'radar', label: '📡 Radar' },
+    { id: 'current', label: '🌡️ Now' },
+    { id: 'hourly', label: '⏱️ Hourly' },
+    { id: 'forecast', label: '📅 Forecast' },
+    { id: 'safety', label: '🛡️ Safety' },
+    { id: 'emergency', label: '📞 Emergency' },
+    { id: 'checklist', label: '✅ Checklist' },
+  ];
+  return (
+    <div className="nav">
+      {tabs.map(t => (
+        <button key={t.id} className={activeTab === t.id ? 'active' : ''} onClick={() => setActiveTab(t.id)}>
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ---------- ALERTS TAB ----------
+function AlertsTab({ alerts, loading, error }) {
+  const [expanded, setExpanded] = useState({});
+
+  if (loading) return <div className="loading"><div className="spinner"></div>Loading alerts from NWS...</div>;
+  if (error) return <div className="error-msg">{error}</div>;
+
+  const hasTornado = alerts.some(a => a.event?.toLowerCase().includes('tornado'));
+  const hasSevere = alerts.some(a => a.event?.toLowerCase().includes('severe'));
+  const hasFlood = alerts.some(a => a.event?.toLowerCase().includes('flood'));
+
+  const threatLevel = hasTornado ? 'danger' : (hasSevere ? 'danger' : (hasFlood ? 'caution' : (alerts.length ? 'caution' : 'ok')));
+
+  return (
+    <div>
+      <div className={`status-bar ${threatLevel}`}>
+        {threatLevel === 'danger' && '🔴 DANGEROUS WEATHER — TAKE SHELTER IMMEDIATELY IF TORNADO WARNING IS ACTIVE'}
+        {threatLevel === 'caution' && '🟡 SEVERE WEATHER IN AREA — STAY ALERT AND MONITOR'}
+        {threatLevel === 'ok' && '🟢 No active severe weather alerts — Continue monitoring'}
+      </div>
+
+      {hasTornado && (
+        <div className="card tornado-warning-active" style={{background:'rgba(239,68,68,.15)',marginBottom:12}}>
+          <h2 style={{color:'var(--red)'}}>🌪️ TORNADO SAFETY — ACT NOW</h2>
+          <ul style={{paddingLeft:18}}>
+            <li><strong>GO to the lowest floor</strong> — basement if available</li>
+            <li><strong>GET to an interior room</strong> — bathroom, closet, hallway</li>
+            <li><strong>STAY AWAY from windows</strong>, doors, and outside walls</li>
+            <li><strong>COVER yourself</strong> with mattress, blankets, or pillows</li>
+            <li><strong>PROTECT your head and neck</strong></li>
+            <li><strong>DO NOT open windows</strong></li>
+            <li><strong>If in mobile home, EVACUATE to sturdy structure</strong></li>
+          </ul>
+        </div>
+      )}
+
+      {alerts.length === 0 ? (
+        <div className="card">
+          <h2>No Active Alerts</h2>
+          <p>There are currently no NWS alerts for the Gallatin/Sumner County area. Alerts auto-refresh every 30 seconds.</p>
+          <p style={{marginTop:8}}>Even without active alerts, remain weather-aware during severe weather season. Monitor local TV and radio.</p>
+        </div>
+      ) : (
+        alerts.map((alert, i) => {
+          const isTW = alert.event?.toLowerCase().includes('tornado') && alert.event?.toLowerCase().includes('warning');
+          const isWatch = alert.event?.toLowerCase().includes('watch');
+          const isAdvisory = alert.event?.toLowerCase().includes('advisory') || alert.severity === 'Minor';
+          const cardClass = isWatch ? 'watch' : (isAdvisory ? 'advisory' : '');
+          const tagClass = isWatch ? 'watch-tag' : (isAdvisory ? 'advisory-tag' : 'warning-tag');
+
+          return (
+            <div key={alert.id || i} className={`card alert-card ${cardClass} ${isTW ? 'tornado-warning-active' : ''}`}>
+              <span className={`alert-type ${tagClass}`}>{alert.severity} — {alert.certainty}</span>
+              <div className="alert-headline">{alert.event}</div>
+              <p className="alert-desc" style={expanded[i] ? {maxHeight:'none'} : {}}>
+                <strong>Area:</strong> {alert.areaDesc}<br/><br/>
+                <strong>Headline:</strong> {alert.headline || 'N/A'}<br/><br/>
+                {expanded[i] && (<><strong>Description:</strong><br/>{alert.description}<br/><br/>
+                  {alert.instruction && <><strong>Instructions:</strong><br/>{alert.instruction}</>}
+                </>)}
+              </p>
+              <button className="expand-btn" onClick={() => setExpanded(prev => ({...prev, [i]: !prev[i]}))}>
+                {expanded[i] ? 'Show Less ▲' : 'Show Full Details ▼'}
+              </button>
+              <div className="alert-time">
+                Issued: {formatDateTime(alert.sent)} | Effective: {formatDateTime(alert.effective)} | Expires: {formatDateTime(alert.expires)}
+              </div>
+            </div>
+          );
+        })
+      )}
+
+      <div className="card" style={{marginTop:8}}>
+        <p style={{fontSize:'.75rem',color:'var(--text-muted)'}}>
+          Data sourced from <strong>National Weather Service API</strong> (api.weather.gov). Alerts refresh automatically every 30 seconds.
+          NWS Office: {CONFIG.nwsOffice} (Nashville). Always follow official NWS guidance.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ---------- RADAR TAB ----------
+function RadarTab() {
+  const [radarType, setRadarType] = useState('reflectivity');
+  const [zoom, setZoom] = useState(7);
+
+  const radarUrls = {
+    reflectivity: `https://radar.weather.gov/ridge/standard/KOHX_loop.gif`,
+    velocity: `https://radar.weather.gov/ridge/standard/KOHX_0.gif`,
+  };
+
+  return (
+    <div>
+      <div className="status-bar caution">
+        📡 Live radar from KOHX (Nashville) — Covers Gallatin/Sumner County area
+      </div>
+
+      <div className="card">
+        <h2>📡 Interactive Radar Map</h2>
+        <div className="radar-container">
+          <iframe
+            src={`https://www.rainviewer.com/map.html?loc=${CONFIG.lat},${CONFIG.lon},${zoom}&oFa=1&oC=1&oU=1&oCS=1&oF=1&oAP=1&c=1&o=83&lm=1&layer=radar&sm=1&sn=1`}
+            loading="eager"
+            allowFullScreen
+          />
+        </div>
+        <div className="radar-controls">
+          <button className={`radar-btn ${zoom === 7 ? 'active' : ''}`} onClick={() => setZoom(7)}>Regional</button>
+          <button className={`radar-btn ${zoom === 9 ? 'active' : ''}`} onClick={() => setZoom(9)}>Local</button>
+          <button className={`radar-btn ${zoom === 11 ? 'active' : ''}`} onClick={() => setZoom(11)}>Close-Up</button>
+        </div>
+        <p style={{fontSize:'.72rem',color:'var(--text-muted)',marginTop:8}}>
+          Interactive: Pan, zoom, and toggle layers. Shows precipitation, storm movement, and lightning.
+        </p>
+      </div>
+
+      <div className="card">
+        <h2>🗺️ NWS Radar Loop — KOHX Nashville</h2>
+        <div className="radar-container">
+          <iframe
+            src={`https://radar.weather.gov/station/KOHX/standard`}
+            loading="eager"
+            allowFullScreen
+          />
+        </div>
+        <p style={{fontSize:'.72rem',color:'var(--text-muted)',marginTop:8}}>
+          Official NWS RIDGE radar. Base reflectivity shows precipitation intensity. Red/purple = severe.
+        </p>
+      </div>
+
+      <div className="card">
+        <h2>🌩️ Lightning & Storm Tracker</h2>
+        <div className="radar-container">
+          <iframe
+            src={`https://www.lightningmaps.org/#m=oss;t=3;s=0;o=0;b=;ts=0;y=${CONFIG.lat};x=${CONFIG.lon};z=8;d=2;dl=2;dc=0;`}
+            loading="eager"
+            allowFullScreen
+          />
+        </div>
+        <p style={{fontSize:'.72rem',color:'var(--text-muted)',marginTop:8}}>
+          Real-time lightning strikes. Close/frequent strikes indicate severe thunderstorm cells.
+        </p>
+      </div>
+
+      <div className="card">
+        <h2>🛰️ Satellite View</h2>
+        <div className="radar-container">
+          <iframe
+            src={`https://www.star.nesdis.noaa.gov/goes/sector_band.php?sat=G16&sector=se&band=GEOCOLOR&length=12&dim=1`}
+            loading="eager"
+            allowFullScreen
+          />
+        </div>
+        <p style={{fontSize:'.72rem',color:'var(--text-muted)',marginTop:8}}>
+          GOES-16 satellite imagery. Southeast sector includes Tennessee.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ---------- CURRENT CONDITIONS TAB ----------
+function CurrentTab({ current, forecast, loading, error }) {
+  if (loading) return <div className="loading"><div className="spinner"></div>Loading current conditions...</div>;
+  if (error) return <div className="error-msg">{error}</div>;
+
+  const temp = current ? celsiusToF(current.temperature?.value) : (forecast?.[0]?.temperature || '--');
+  const windSpeed = current ? kphToMph(current.windSpeed?.value) : null;
+  const windDir = current?.windDirection?.value;
+  const windGust = current ? kphToMph(current.windGust?.value) : null;
+  const humidity = current?.relativeHumidity?.value;
+  const visibility = current ? metersToMiles(current.visibility?.value) : null;
+  const pressure = current ? paToInHg(current.barometricPressure?.value) : null;
+  const dewpoint = current ? celsiusToF(current.dewpoint?.value) : null;
+  const heatIndex = current ? celsiusToF(current.heatIndex?.value) : null;
+  const windChill = current ? celsiusToF(current.windChill?.value) : null;
+  const desc = current?.textDescription || forecast?.[0]?.shortForecast || 'N/A';
+
+  const windDirLabel = (deg) => {
+    if (deg == null) return '';
+    const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+    return dirs[Math.round(deg / 22.5) % 16];
+  };
+
+  return (
+    <div>
+      <div className="card">
+        <div style={{textAlign:'center',padding:'8px 0'}}>
+          <div style={{fontSize:'3rem'}}>{getWeatherIcon(desc)}</div>
+          <div style={{fontSize:'3.5rem',fontWeight:900}}>{temp != null ? `${temp}°F` : '--'}</div>
+          <div style={{fontSize:'1rem',color:'var(--text-dim)',fontWeight:600}}>{desc}</div>
+          {(heatIndex || windChill) && (
+            <div style={{fontSize:'.82rem',color:'var(--orange)',marginTop:4}}>
+              Feels like: {heatIndex ? `${heatIndex}°F (heat index)` : `${windChill}°F (wind chill)`}
+            </div>
+          )}
+          <div style={{fontSize:'.75rem',color:'var(--text-muted)',marginTop:4}}>
+            Station observation: {current?.timestamp ? formatDateTime(current.timestamp) : 'N/A'}
+          </div>
+        </div>
+      </div>
+
+      <div className="details-grid">
+        <div className="detail-item">
+          <div className="label">💨 Wind</div>
+          <div className="value">{windSpeed != null ? `${windSpeed} mph` : '--'}</div>
+          <div className="sub">{windDirLabel(windDir)} {windDir != null ? `(${Math.round(windDir)}°)` : ''}</div>
+        </div>
+        <div className="detail-item">
+          <div className="label">💨 Wind Gust</div>
+          <div className="value" style={windGust > 40 ? {color:'var(--red)'} : {}}>{windGust != null ? `${windGust} mph` : 'Calm'}</div>
+          <div className="sub">{windGust > 58 ? '⚠️ SEVERE' : windGust > 40 ? '⚠️ Strong' : ''}</div>
+        </div>
+        <div className="detail-item">
+          <div className="label">💧 Humidity</div>
+          <div className="value">{humidity != null ? `${Math.round(humidity)}%` : '--'}</div>
+          <div className="sub">{humidity > 80 ? 'Very humid' : humidity > 60 ? 'Humid' : 'Comfortable'}</div>
+        </div>
+        <div className="detail-item">
+          <div className="label">🌡️ Dew Point</div>
+          <div className="value">{dewpoint != null ? `${dewpoint}°F` : '--'}</div>
+          <div className="sub">{dewpoint > 65 ? 'Muggy — storm fuel' : dewpoint > 55 ? 'Moderate' : 'Comfortable'}</div>
+        </div>
+        <div className="detail-item">
+          <div className="label">📊 Pressure</div>
+          <div className="value">{pressure || '--'} inHg</div>
+          <div className="sub">{pressure < 29.8 ? '📉 Low — storm likely' : 'Normal range'}</div>
+        </div>
+        <div className="detail-item">
+          <div className="label">👁️ Visibility</div>
+          <div className="value">{visibility || '--'} mi</div>
+          <div className="sub">{visibility < 1 ? '⚠️ Very poor' : visibility < 3 ? 'Reduced' : 'Good'}</div>
+        </div>
+      </div>
+
+      {forecast && forecast[0] && (
+        <div className="card" style={{marginTop:12}}>
+          <h2>{forecast[0].name}</h2>
+          <p>{forecast[0].detailedForecast}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------- HOURLY TAB ----------
+function HourlyTab({ hourly, loading, error }) {
+  if (loading) return <div className="loading"><div className="spinner"></div>Loading hourly forecast...</div>;
+  if (error) return <div className="error-msg">{error}</div>;
+  if (!hourly || hourly.length === 0) return <div className="card"><p>No hourly data available.</p></div>;
+
+  const next24 = hourly.slice(0, 24);
+
+  return (
+    <div>
+      <div className="card">
+        <h2>⏱️ Next 24 Hours</h2>
+        <div className="hourly-scroll">
+          {next24.map((h, i) => {
+            const isSevere = h.shortForecast?.toLowerCase().includes('thunder') || h.shortForecast?.toLowerCase().includes('tornado');
+            return (
+              <div key={i} className="hourly-item" style={isSevere ? {borderColor:'var(--red)',background:'rgba(239,68,68,.1)'} : {}}>
+                <div className="time">{formatTime(h.startTime)}</div>
+                <div className="h-icon">{getWeatherIcon(h.shortForecast)}</div>
+                <div className="h-temp">{h.temperature}°</div>
+                <div className="h-wind">{h.windSpeed}</div>
+                <div className="h-precip" style={{fontSize:'.62rem'}}>{h.shortForecast?.substring(0, 15)}</div>
+                {h.probabilityOfPrecipitation?.value > 0 && (
+                  <div className="h-precip">💧{h.probabilityOfPrecipitation.value}%</div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="card">
+        <h2>📊 Detailed Hourly Breakdown</h2>
+        {next24.slice(0, 12).map((h, i) => {
+          const isSevere = h.shortForecast?.toLowerCase().includes('thunder') ||
+                          h.shortForecast?.toLowerCase().includes('tornado') ||
+                          h.shortForecast?.toLowerCase().includes('severe');
+          return (
+            <div key={i} style={{
+              display:'flex', justifyContent:'space-between', alignItems:'center',
+              padding:'8px 0', borderBottom:'1px solid var(--border)',
+              color: isSevere ? 'var(--red)' : 'inherit'
+            }}>
+              <div style={{width:70,fontSize:'.82rem',fontWeight:600}}>{formatTime(h.startTime)}</div>
+              <div style={{fontSize:'1.2rem'}}>{getWeatherIcon(h.shortForecast)}</div>
+              <div style={{width:45,textAlign:'center',fontWeight:700}}>{h.temperature}°F</div>
+              <div style={{flex:1,fontSize:'.78rem',color:'var(--text-dim)',textAlign:'right'}}>
+                {h.shortForecast} — Wind: {h.windSpeed} {h.windDirection}
+                {h.probabilityOfPrecipitation?.value > 0 && ` — 💧${h.probabilityOfPrecipitation.value}%`}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ---------- FORECAST TAB ----------
+function ForecastTab({ forecast, loading, error }) {
+  if (loading) return <div className="loading"><div className="spinner"></div>Loading forecast...</div>;
+  if (error) return <div className="error-msg">{error}</div>;
+  if (!forecast || forecast.length === 0) return <div className="card"><p>No forecast data available.</p></div>;
+
+  return (
+    <div>
+      <div className="card">
+        <h2>📅 7-Day Forecast — Gallatin, TN</h2>
+        <div className="forecast-grid">
+          {forecast.map((p, i) => (
+            <div key={i} className="forecast-item">
+              <div className="day">{p.name}</div>
+              <div className="icon">{getWeatherIcon(p.shortForecast)}</div>
+              <div className={`temp ${p.isDaytime ? 'temp-hi' : 'temp-lo'}`}>
+                {p.temperature}°{p.temperatureUnit}
+              </div>
+              <div className="desc">{p.shortForecast}</div>
+              {p.probabilityOfPrecipitation?.value > 0 && (
+                <div className="precip">💧 {p.probabilityOfPrecipitation.value}% precip</div>
+              )}
+              <div style={{fontSize:'.68rem',color:'var(--text-muted)',marginTop:2}}>
+                Wind: {p.windSpeed} {p.windDirection}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {forecast.slice(0, 4).map((p, i) => (
+        <div key={i} className="card">
+          <h3>{getWeatherIcon(p.shortForecast)} {p.name} — {p.temperature}°{p.temperatureUnit}</h3>
+          <p>{p.detailedForecast}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ---------- SAFETY TAB ----------
+function SafetyTab({ alerts }) {
+  const hasTornado = alerts.some(a => a.event?.toLowerCase().includes('tornado'));
+
+  return (
+    <div>
+      {hasTornado && (
+        <div className="status-bar danger" style={{animation:'blink 1s infinite'}}>
+          🌪️ TORNADO ALERT ACTIVE — REVIEW SAFETY STEPS IMMEDIATELY
+        </div>
+      )}
+
+      <div className="card">
+        <h2>🌪️ Tornado Safety (FEMA/NWS Guidelines)</h2>
+        <div className="safety-section">
+          <div className="safety-step">
+            <div className="step-num">1</div>
+            <div className="step-text"><strong>GO to the LOWEST FLOOR immediately.</strong> A basement is the safest option. If no basement, go to the first floor.</div>
+          </div>
+          <div className="safety-step">
+            <div className="step-num">2</div>
+            <div className="step-text"><strong>Go to a SMALL INTERIOR ROOM.</strong> Best options: bathroom, closet, or interior hallway. A bathtub with a mattress on top provides excellent protection.</div>
+          </div>
+          <div className="safety-step">
+            <div className="step-num">3</div>
+            <div className="step-text"><strong>STAY AWAY from all windows, doors, and outside walls.</strong> Flying glass and debris cause most tornado injuries.</div>
+          </div>
+          <div className="safety-step">
+            <div className="step-num">4</div>
+            <div className="step-text"><strong>COVER yourself and your child.</strong> Use a mattress, heavy blankets, coats, or pillows. Get under a sturdy piece of furniture if possible.</div>
+          </div>
+          <div className="safety-step">
+            <div className="step-num">5</div>
+            <div className="step-text"><strong>PROTECT heads and necks.</strong> Use arms to cover head/neck. Put bike helmets on if available — especially for your 6-year-old.</div>
+          </div>
+          <div className="safety-step">
+            <div className="step-num">6</div>
+            <div className="step-text"><strong>DO NOT open windows.</strong> This is a dangerous myth. Keep all windows and doors closed.</div>
+          </div>
+          <div className="safety-step">
+            <div className="step-num">7</div>
+            <div className="step-text"><strong>Stay sheltered until ALL-CLEAR.</strong> Do not leave shelter until the warning expires or local authorities give the all-clear. Storms can have multiple tornadoes.</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card">
+        <h2>⛈️ Severe Thunderstorm Safety</h2>
+        <ul>
+          <li><strong>Move indoors immediately</strong> — stay away from windows</li>
+          <li><strong>Unplug electronics</strong> — lightning can cause power surges</li>
+          <li><strong>Avoid plumbing</strong> — don't shower, bathe, or wash dishes during lightning</li>
+          <li><strong>Stay off corded phones</strong> — use cell phones only</li>
+          <li><strong>If power goes out</strong>, use flashlights, not candles</li>
+          <li><strong>Do NOT drive</strong> through flooded roads — Turn Around Don't Drown</li>
+          <li><strong>6 inches of water</strong> can knock you down, 12 inches can carry a car</li>
+          <li><strong>Wait 30 minutes</strong> after the last thunder before going outside</li>
+        </ul>
+      </div>
+
+      <div className="card">
+        <h2>🏠 Safe Rooms at Home — Priority Order</h2>
+        <ol style={{paddingLeft:18}}>
+          <li><strong>Basement</strong> — center of basement, away from windows</li>
+          <li><strong>First floor interior bathroom</strong> — get in tub, pull mattress over</li>
+          <li><strong>First floor interior closet</strong> — smallest interior closet</li>
+          <li><strong>Interior hallway</strong> — on lowest floor, away from doors/windows</li>
+          <li><strong>Under stairs</strong> — provides structural protection</li>
+        </ol>
+        <p style={{marginTop:8,fontWeight:600,color:'var(--orange)'}}>
+          ⚠️ AVOID: Upper floors, rooms with windows, garages, mobile homes, vehicles
+        </p>
+      </div>
+
+      <div className="card">
+        <h2>👶 Child Safety During Storms</h2>
+        <ul>
+          <li><strong>Stay calm</strong> — children take cues from adults</li>
+          <li><strong>Make it a game</strong> — "camping" in the safe room with blankets</li>
+          <li><strong>Shoes ON</strong> — in case of debris or broken glass</li>
+          <li><strong>Have comfort items ready</strong> — stuffed animal, blanket</li>
+          <li><strong>Practice covering drill</strong> — show how to tuck and cover head</li>
+          <li><strong>Bike helmet</strong> — put on your child's head for debris protection</li>
+          <li><strong>Explain simply</strong> — "We're staying safe while the big storm passes"</li>
+        </ul>
+      </div>
+
+      <div className="card">
+        <h2>📦 Emergency Kit Quick Check</h2>
+        <ul>
+          <li>✅ Phone charged + backup battery/charger</li>
+          <li>✅ Flashlight with batteries</li>
+          <li>✅ Water bottles</li>
+          <li>✅ First aid kit</li>
+          <li>✅ Weather radio (NOAA) if available</li>
+          <li>✅ Shoes near shelter area</li>
+          <li>✅ Important documents in waterproof bag</li>
+          <li>✅ Medications</li>
+          <li>✅ Blankets/pillows for protection and warmth</li>
+          <li>✅ Whistle (to signal for help if trapped)</li>
+        </ul>
+      </div>
+
+      <div className="card">
+        <h2>🔊 Understanding Weather Alerts</h2>
+        <div style={{marginBottom:8}}>
+          <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:6}}>
+            <span style={{background:'var(--red)',padding:'2px 8px',borderRadius:4,fontSize:'.75rem',fontWeight:700}}>WARNING</span>
+            <span style={{fontSize:'.85rem'}}>Tornado/Severe Storm <strong>has been spotted or detected on radar. TAKE ACTION NOW.</strong></span>
+          </div>
+          <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:6}}>
+            <span style={{background:'var(--orange)',padding:'2px 8px',borderRadius:4,fontSize:'.75rem',fontWeight:700}}>WATCH</span>
+            <span style={{fontSize:'.85rem'}}>Conditions are <strong>favorable</strong> for severe weather. <strong>Be prepared to act.</strong></span>
+          </div>
+          <div style={{display:'flex',gap:8,alignItems:'center'}}>
+            <span style={{background:'var(--yellow)',padding:'2px 8px',borderRadius:4,fontSize:'.75rem',fontWeight:700,color:'#000'}}>ADVISORY</span>
+            <span style={{fontSize:'.85rem'}}>Weather event expected that may cause <strong>inconvenience but is not life-threatening.</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <div className="card">
+        <h2>🏘️ After the Storm</h2>
+        <ul>
+          <li><strong>Stay sheltered</strong> until confirmed all-clear</li>
+          <li><strong>Watch for downed power lines</strong> — assume all are live</li>
+          <li><strong>Do NOT enter damaged buildings</strong></li>
+          <li><strong>Check for gas leaks</strong> — if you smell gas, leave immediately</li>
+          <li><strong>Photograph damage</strong> for insurance before cleanup</li>
+          <li><strong>Check on neighbors</strong> especially elderly</li>
+          <li><strong>Avoid flood water</strong> — may contain sewage, chemicals, downed lines</li>
+          <li><strong>Text, don't call</strong> — keeps lines open for emergencies</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+// ---------- EMERGENCY CONTACTS TAB ----------
+function EmergencyTab() {
+  const contacts = [
+    { name: '911 — Emergency Services', num: '911', desc: 'Life-threatening emergencies', icon: '🚨', color: '#ef4444' },
+    { name: 'Sumner County EMA', num: '(615) 451-5865', desc: 'Emergency Management Agency', icon: '🏛️', color: '#f97316' },
+    { name: 'Gallatin Police', num: '(615) 452-1313', desc: 'Gallatin Police Department', icon: '👮', color: '#3b82f6' },
+    { name: 'Sumner County Sheriff', num: '(615) 442-1822', desc: 'Non-emergency dispatch', icon: '⭐', color: '#8b5cf6' },
+    { name: 'Gallatin Fire Dept', num: '(615) 452-5475', desc: 'Fire & Rescue', icon: '🚒', color: '#ef4444' },
+    { name: 'Sumner Regional Medical', num: '(615) 452-4210', desc: 'Hospital — 555 Hartsville Pike', icon: '🏥', color: '#22c55e' },
+    { name: 'TN Emergency Info Line', num: '(615) 741-0001', desc: 'Tennessee Emergency Management', icon: '📞', color: '#06b6d4' },
+    { name: 'TEMA (State EMA)', num: '(615) 741-0001', desc: 'Tennessee Emergency Mgmt Agency', icon: '🏛️', color: '#a855f7' },
+    { name: 'Red Cross Nashville', num: '(615) 250-4300', desc: 'Disaster relief & shelters', icon: '➕', color: '#ef4444' },
+    { name: 'Poison Control', num: '1-800-222-1222', desc: '24/7 Poison Help Line', icon: '☠️', color: '#eab308' },
+    { name: 'NWS Nashville', num: '(615) 754-4633', desc: 'National Weather Service Office', icon: '🌤️', color: '#3b82f6' },
+    { name: 'Nashville Electric (NES)', num: '(615) 234-0000', desc: 'Power outage reporting', icon: '⚡', color: '#eab308' },
+    { name: 'Piedmont Natural Gas', num: '1-800-752-7504', desc: 'Gas emergency line', icon: '🔥', color: '#f97316' },
+    { name: 'Gallatin Public Works', num: '(615) 452-5475', desc: 'Flooding/road issues', icon: '🚧', color: '#64748b' },
+  ];
+
+  return (
+    <div>
+      <div className="status-bar danger">
+        📞 Tap any contact to call directly from your phone
+      </div>
+
+      {contacts.map((c, i) => (
+        <a key={i} href={`tel:${c.num.replace(/[^0-9+]/g, '')}`} style={{textDecoration:'none',color:'inherit'}}>
+          <div className="contact-card">
+            <div className="contact-icon" style={{background:`${c.color}22`,border:`2px solid ${c.color}`}}>
+              {c.icon}
+            </div>
+            <div className="contact-info">
+              <div className="contact-name">{c.name}</div>
+              <div className="contact-num">{c.num}</div>
+              <div className="contact-desc">{c.desc}</div>
+            </div>
+            <div style={{fontSize:'1.2rem',color:'var(--text-muted)'}}>📱</div>
+          </div>
+        </a>
+      ))}
+
+      <div className="card" style={{marginTop:12}}>
+        <h2>📻 NOAA Weather Radio</h2>
+        <p>Tune to: <strong>162.475 MHz</strong> (Nashville area primary frequency)</p>
+        <p style={{marginTop:4}}>Alt frequencies: 162.425, 162.450, 162.500, 162.525, 162.550</p>
+        <p style={{marginTop:8,fontSize:'.8rem',color:'var(--text-muted)'}}>NOAA Weather Radio provides continuous weather broadcasts and is the most reliable source during power outages.</p>
+      </div>
+
+      <div className="card">
+        <h2>📱 Important Apps</h2>
+        <ul>
+          <li><strong>FEMA App</strong> — Real-time alerts, shelter finder</li>
+          <li><strong>Weather Underground</strong> — Hyper-local radar</li>
+          <li><strong>RadarScope</strong> — Professional-grade radar</li>
+          <li><strong>Ready TN</strong> — Tennessee emergency app</li>
+        </ul>
+      </div>
+
+      <div className="card">
+        <h2>🏫 Nearest Shelters</h2>
+        <p style={{fontSize:'.8rem',color:'var(--text-muted)',marginBottom:8}}>In Gallatin/Sumner County area — confirm availability during active events</p>
+        <ul>
+          <li><strong>Gallatin Civic Center</strong> — 210 Albert Gallatin Ave</li>
+          <li><strong>Vol State Community College</strong> — 1480 Nashville Pike</li>
+          <li><strong>Local churches</strong> — many open as shelters during disasters</li>
+          <li><strong>Contact Red Cross</strong> at (615) 250-4300 for active shelter locations</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+// ---------- CHECKLIST TAB ----------
+function ChecklistTab() {
+  const [checks, setChecks] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('storm-checklist') || '{}');
+    } catch { return {}; }
+  });
+
+  const toggle = (id) => {
+    const next = { ...checks, [id]: !checks[id] };
+    setChecks(next);
+    try { localStorage.setItem('storm-checklist', JSON.stringify(next)); } catch {}
+  };
+
+  const items = [
+    { id: 'shelter', label: 'Identified safe room / shelter location in house' },
+    { id: 'phone', label: 'Phone fully charged' },
+    { id: 'charger', label: 'Portable charger / power bank ready' },
+    { id: 'flash', label: 'Flashlight with fresh batteries accessible' },
+    { id: 'water', label: 'Water bottles in shelter area' },
+    { id: 'shoes', label: 'Shoes ready for everyone (protect from debris)' },
+    { id: 'helmet', label: 'Bike helmets ready (especially for child)' },
+    { id: 'blankets', label: 'Mattress/blankets/pillows in shelter area' },
+    { id: 'firstaid', label: 'First aid kit accessible' },
+    { id: 'meds', label: 'Essential medications gathered' },
+    { id: 'docs', label: 'Important documents in waterproof bag' },
+    { id: 'radio', label: 'Weather radio or phone alerts enabled' },
+    { id: 'pets', label: 'Pets secured / brought to shelter area' },
+    { id: 'alerts', label: 'NWS alerts / Wireless Emergency Alerts enabled on phone' },
+    { id: 'neighbor', label: 'Neighbors aware of storm threat' },
+    { id: 'snacks', label: 'Non-perishable snacks in shelter area' },
+    { id: 'comfort', label: 'Comfort items for child (stuffed animal, blanket)' },
+    { id: 'whistle', label: 'Whistle available (to signal if trapped)' },
+    { id: 'gas', label: 'Know where gas shutoff is located' },
+    { id: 'car', label: 'Car has gas (in case of evacuation)' },
+  ];
+
+  const completed = items.filter(i => checks[i.id]).length;
+
+  return (
+    <div>
+      <div className={`status-bar ${completed === items.length ? 'ok' : completed > items.length/2 ? 'caution' : 'danger'}`}>
+        ✅ {completed} of {items.length} items completed — {completed === items.length ? 'FULLY PREPARED' : 'Keep going!'}
+      </div>
+
+      <div className="card">
+        <h2>✅ Storm Preparedness Checklist</h2>
+        <p style={{fontSize:'.8rem',color:'var(--text-muted)',marginBottom:8}}>Tap items as you complete them. Progress saves automatically.</p>
+        {items.map(item => (
+          <div key={item.id} className={`checklist-item ${checks[item.id] ? 'checked' : ''}`} onClick={() => toggle(item.id)}>
+            <input type="checkbox" checked={!!checks[item.id]} onChange={() => toggle(item.id)} />
+            <label>{item.label}</label>
+          </div>
+        ))}
+      </div>
+
+      <div className="card">
+        <button
+          onClick={() => { setChecks({}); try { localStorage.removeItem('storm-checklist'); } catch {} }}
+          style={{background:'var(--surface)',border:'1px solid var(--border)',color:'var(--text-muted)',padding:'8px 16px',borderRadius:8,cursor:'pointer',fontSize:'.82rem',width:'100%'}}
+        >
+          Reset Checklist
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// MAIN APP
+// ============================================================
+function App() {
+  const [activeTab, setActiveTab] = useState('alerts');
+  const { alerts, loading: alertsLoading, error: alertsError, lastFetched } = useNWSAlerts();
+  const { forecast, hourly, current, loading: forecastLoading, error: forecastError, refetch: refetchForecast } = useNWSForecast();
+
+  // Auto-switch to alerts if new critical alert arrives
+  const prevAlertCount = useRef(alerts.length);
+  useEffect(() => {
+    if (alerts.length > prevAlertCount.current) {
+      const hasCritical = alerts.some(a =>
+        a.event?.toLowerCase().includes('tornado warning') ||
+        (a.severity === 'Extreme' && a.urgency === 'Immediate')
+      );
+      if (hasCritical) setActiveTab('alerts');
+    }
+    prevAlertCount.current = alerts.length;
+  }, [alerts]);
+
+  // Browser notification for new alerts
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (alerts.length > 0 && 'Notification' in window && Notification.permission === 'granted') {
+      const top = alerts[0];
+      if (top.severity === 'Extreme' || top.severity === 'Severe') {
+        try {
+          new Notification(`⚠️ ${top.event}`, { body: top.headline || top.areaDesc, icon: '🌪️', requireInteraction: true });
+        } catch {}
+      }
+    }
+  }, [alerts.length]);
+
+  // Keep screen awake
+  useEffect(() => {
+    let wakeLock = null;
+    const requestWake = async () => {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+        }
+      } catch {}
+    };
+    requestWake();
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') requestWake();
+    });
+    return () => { if (wakeLock) wakeLock.release(); };
+  }, []);
+
+  const renderTab = () => {
+    switch (activeTab) {
+      case 'alerts': return <AlertsTab alerts={alerts} loading={alertsLoading} error={alertsError} />;
+      case 'radar': return <RadarTab />;
+      case 'current': return <CurrentTab current={current} forecast={forecast} loading={forecastLoading} error={forecastError} />;
+      case 'hourly': return <HourlyTab hourly={hourly} loading={forecastLoading} error={forecastError} />;
+      case 'forecast': return <ForecastTab forecast={forecast} loading={forecastLoading} error={forecastError} />;
+      case 'safety': return <SafetyTab alerts={alerts} />;
+      case 'emergency': return <EmergencyTab />;
+      case 'checklist': return <ChecklistTab />;
+      default: return <AlertsTab alerts={alerts} loading={alertsLoading} error={alertsError} />;
+    }
+  };
+
+  return (
+    <div id="app">
+      <AlertBanner alerts={alerts} />
+      <Header lastFetched={lastFetched} alertCount={alerts.length} />
+      <TabNav activeTab={activeTab} setActiveTab={setActiveTab} alertCount={alerts.length} />
+      <div className="content">
+        {renderTab()}
+      </div>
+      <div className="bottom-bar">
+        Data: <a href="https://api.weather.gov" target="_blank" rel="noopener">National Weather Service</a> |
+        Radar: KOHX Nashville |
+        Location: {CONFIG.lat}, {CONFIG.lon} |
+        Auto-refresh: Alerts 30s / Forecast 5m<br/>
+        <strong>⚠️ This app supplements but does NOT replace official NWS warnings, local TV, or NOAA Weather Radio.</strong>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
